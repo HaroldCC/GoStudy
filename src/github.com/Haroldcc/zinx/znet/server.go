@@ -8,6 +8,7 @@ package znet
 
 import (
 	"GoStudy/src/github.com/Haroldcc/zinx/ziface"
+	"errors"
 	"fmt"
 	"net"
 )
@@ -43,6 +44,7 @@ func (server *Server) Start() {
 
 		fmt.Println("Start zinx server success, ", server.Name, "begin to listening")
 
+		connId := uint32(0)
 		// 3.阻塞等待客户端连接，处理客户端业务（读写）
 		for {
 			tcpConn, err := listener.AcceptTCP()
@@ -51,26 +53,12 @@ func (server *Server) Start() {
 				continue
 			}
 
-			// 处理连接的客户端业务
-			// (v0.1:最大512字节的回显业务)
-			go func() {
-				for {
-					buf := make([]byte, 512)
-					count, err := tcpConn.Read(buf)
-					if err != nil {
-						fmt.Println("Read error: ", err)
-						continue
-					}
+			// 将当前连接业务处理与连接绑定
+			handleConn := NewConnection(tcpConn, connId, EchoToClient)
+			connId++
 
-					fmt.Printf("recv Client message:%s, count %d\n", buf, count)
-
-					// 回显
-					if _, err := tcpConn.Write(buf[:count]); err != nil {
-						fmt.Println("Write back error: ", err)
-						continue
-					}
-				}
-			}()
+			// 启动业务处理
+			go handleConn.Start()
 		}
 	}()
 }
@@ -98,4 +86,20 @@ func NewServer(name string) ziface.IServer {
 	}
 
 	return &server
+}
+
+/**
+ * @brief：将内容回显给客户端
+ * @param [in] conn:与客户端的连接
+ * @param [in] data:数据
+ * @param [in] count:数据的字节长度
+ * @return 失败返回错误信息，成功返回nil
+ */
+func EchoToClient(conn *net.TCPConn, data []byte, count int) error {
+	if _, err := conn.Write(data[:count]); err != nil {
+		fmt.Println("Write back error: ", err)
+		return errors.New("EchoToClient error")
+	}
+
+	return nil
 }
