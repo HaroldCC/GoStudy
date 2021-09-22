@@ -8,17 +8,17 @@ package znet
 
 import (
 	"GoStudy/src/github.com/Haroldcc/zinx/ziface"
-	"errors"
 	"fmt"
 	"net"
 )
 
 // IServer的接口实现：定义一个Server的服务器模块
 type Server struct {
-	Name      string // 服务器名称
-	IPVersion string // 服务器版本
-	IP        string // 服务器IP
-	Port      int    // 服务器端口
+	Name      string         // 服务器名称
+	IPVersion string         // 服务器版本
+	IP        string         // 服务器IP
+	Port      int            // 服务器端口
+	Router    ziface.IRouter // server注册的连接对应的处理业务
 }
 
 // 启动服务器
@@ -54,7 +54,7 @@ func (server *Server) Start() {
 			}
 
 			// 将当前连接业务处理与连接绑定
-			handleConn := NewConnection(tcpConn, connId, EchoToClient)
+			handleConn := NewConnection(tcpConn, connId, server.Router)
 			connId++
 
 			// 启动业务处理
@@ -76,6 +76,16 @@ func (server *Server) Run() {
 	select {}
 }
 
+/**
+ * @brief：路由功能:给当前的服务注册一个路由方法，共客户端连接处理
+ * @param [in] router 路由
+ * @param [out]
+ * @return
+ */
+func (server *Server) AddRouter(router ziface.IRouter) {
+	server.Router = router
+}
+
 // 初始化Server(创建一个Server)
 func NewServer(name string) ziface.IServer {
 	server := Server{
@@ -83,23 +93,8 @@ func NewServer(name string) ziface.IServer {
 		IPVersion: "tcp4",
 		IP:        "0.0.0.0",
 		Port:      8888,
+		Router:    nil,
 	}
 
 	return &server
-}
-
-/**
- * @brief：将内容回显给客户端
- * @param [in] conn:与客户端的连接
- * @param [in] data:数据
- * @param [in] count:数据的字节长度
- * @return 失败返回错误信息，成功返回nil
- */
-func EchoToClient(conn *net.TCPConn, data []byte, count int) error {
-	if _, err := conn.Write(data[:count]); err != nil {
-		fmt.Println("Write back error: ", err)
-		return errors.New("EchoToClient error")
-	}
-
-	return nil
 }
