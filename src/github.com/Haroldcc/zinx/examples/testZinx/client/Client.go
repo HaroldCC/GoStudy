@@ -23,7 +23,7 @@ func main() {
 	}
 
 	for {
-		_, err := conn.Write([]byte("Hello zinx v0.3..."))
+		_, err := conn.Write([]byte("Hello zinx v0.4..."))
 		if err != nil {
 			fmt.Println("Write conn error: ", err)
 			return

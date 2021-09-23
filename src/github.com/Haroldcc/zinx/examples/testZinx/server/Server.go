@@ -46,7 +46,7 @@ func (router *PingRouter) PostHandle(request ziface.IRequest) {
 
 func main() {
 	// 1.创建一个server
-	server := znet.NewServer("[zinx服务端测试v0.3]")
+	server := znet.NewServer("[zinx服务端测试v0.4]")
 
 	// 2.给框架添加一个自定义的router
 	server.AddRouter(&PingRouter{})
