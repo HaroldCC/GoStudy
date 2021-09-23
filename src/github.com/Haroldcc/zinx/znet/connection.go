@@ -7,6 +7,7 @@
 package znet
 
 import (
+	"GoStudy/src/github.com/Haroldcc/zinx/utils"
 	"GoStudy/src/github.com/Haroldcc/zinx/ziface"
 	"fmt"
 	"net"
@@ -50,7 +51,8 @@ func (conn *Connection) StartReader() {
 	defer conn.Stop()
 
 	for {
-		buf := make([]byte, 512)
+		// 读取客户端数据到buf
+		buf := make([]byte, utils.G_config.MaxPackageSize)
 		_, err := conn.Conn.Read(buf)
 		if err != nil {
 			fmt.Println("Read error ", err)
