@@ -29,7 +29,7 @@ type Connection struct {
  * @param [in] router:处理业务路由
  * @return 创建的connection
  */
-func NewConnection(conn *net.TCPConn, connID uint32, router ziface.IRouter) *Connection {
+func NewConnection(conn *net.TCPConn, connID uint32, router ziface.IRouter) ziface.IConnection {
 	connection := Connection{
 		Conn:     conn,
 		ConnID:   connID,
