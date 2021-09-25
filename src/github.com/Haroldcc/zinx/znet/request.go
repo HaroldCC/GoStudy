@@ -34,5 +34,5 @@ func (request *Request) GetData() []byte {
  * @return 消息ID
  */
 func (request *Request) GetMsgID() uint32 {
-	return request.GetMsgID()
+	return request.msg.GetMsgID()
 }
