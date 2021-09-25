@@ -32,8 +32,8 @@ func init() {
 	G_config = &GlobalConf{
 		Host:           "0.0.0.0",
 		TcpPort:        8888,
-		Name:           "zinxServer app v0.5",
-		Version:        "v0.5",
+		Name:           "zinxServer app",
+		Version:        "v0.6",
 		MaxConn:        1000,
 		MaxPackageSize: 4096,
 	}

@@ -12,7 +12,7 @@ import (
 	"fmt"
 )
 
-// 自定义路由
+// 自定义路由1
 type PingRouter struct {
 	znet.BaseRouter
 }
@@ -24,7 +24,25 @@ func (router *PingRouter) Handle(request ziface.IRequest) {
 		", content:", string(request.GetData()))
 
 	// 向客户端发送消息
-	err := request.GetConnection().SendMsg(1, []byte("a message form server"))
+	err := request.GetConnection().SendMsg(200, []byte("a message [Ping] form server"))
+	if err != nil {
+		fmt.Println("send message error: ", err)
+	}
+}
+
+// 自定义路由2
+type HelloRouter struct {
+	znet.BaseRouter
+}
+
+// test Handle
+func (router *HelloRouter) Handle(request ziface.IRequest) {
+	// 读取客户端数据并打印
+	fmt.Println("recv from client msgID=", request.GetMsgID(),
+		", content:", string(request.GetData()))
+
+	// 向客户端发送消息
+	err := request.GetConnection().SendMsg(201, []byte("a message [HelloRouter] form server"))
 	if err != nil {
 		fmt.Println("send message error: ", err)
 	}
@@ -32,10 +50,11 @@ func (router *PingRouter) Handle(request ziface.IRequest) {
 
 func main() {
 	// 1.创建一个server
-	server := znet.NewServer("[zinx服务端测试v0.5]")
+	server := znet.NewServer("[zinx服务端测试v0.6]")
 
-	// 2.给框架添加一个自定义的router
-	server.AddRouter(&PingRouter{})
+	// 2.给框架添加一个自定义的router1
+	server.AddRouter(0, &PingRouter{})
+	server.AddRouter(1, &HelloRouter{})
 
 	// 3.启动server
 	server.Run()

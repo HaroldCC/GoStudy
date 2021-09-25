@@ -1,5 +1,5 @@
 /***********************************************************
- * 文件名称: Client.go
+ * 文件名称: Client1.go
  * 功能描述: 服务端
  * 创建标识: Haroldcc 2021/09/21
 ***********************************************************/
@@ -15,7 +15,7 @@ import (
 )
 
 func main() {
-	fmt.Println("Client0 Start...")
+	fmt.Println("Client1 Start...")
 
 	// 连接服务器
 	conn, err := net.Dial("tcp", "127.0.0.1:8888")
@@ -27,7 +27,7 @@ func main() {
 	for {
 		// 对消息进行封包
 		dataPackage := znet.NewDataPack()
-		binaryMsg, err := dataPackage.Pack(znet.NewMessage(0, []byte("zinx0 client test message")))
+		binaryMsg, err := dataPackage.Pack(znet.NewMessage(1, []byte("zinx1 client test message")))
 		if err != nil {
 			fmt.Println("Pack message error: ", err)
 			return
