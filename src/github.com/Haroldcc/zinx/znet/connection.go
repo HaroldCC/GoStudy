@@ -7,9 +7,10 @@
 package znet
 
 import (
-	"GoStudy/src/github.com/Haroldcc/zinx/utils"
 	"GoStudy/src/github.com/Haroldcc/zinx/ziface"
+	"errors"
 	"fmt"
+	"io"
 	"net"
 )
 
@@ -51,18 +52,42 @@ func (conn *Connection) StartReader() {
 	defer conn.Stop()
 
 	for {
-		// 读取客户端数据到buf
-		buf := make([]byte, utils.G_config.MaxPackageSize)
-		_, err := conn.Conn.Read(buf)
-		if err != nil {
-			fmt.Println("Read error ", err)
-			continue
+		// 创建数据包
+		dataPackage := NewDataPack()
+
+		// 读取包头
+		dataHead := make([]byte, dataPackage.GetHeadLen())
+		if _, err := io.ReadFull(conn.GetTcpConnection(),
+			dataHead); err != nil {
+			fmt.Println("read message head error: ", err)
+			break
 		}
+
+		// 对包头拆包，存入message中
+		msg, err := dataPackage.UnPack(dataHead)
+		if err != nil {
+			fmt.Println("unpack dataHead error: ", err)
+			break
+		}
+
+		// 根据包头信息读取数据
+		var data []byte
+		if msg.GetMsgSize() > 0 {
+			data = make([]byte, msg.GetMsgSize())
+			if _, err := io.ReadFull(conn.GetTcpConnection(),
+				data); err != nil {
+				fmt.Println("read message data error: ", err)
+				break
+			}
+		}
+
+		//存入消息内容
+		msg.SetMsgContent(data)
 
 		// 得到conn的Request
 		req := Request{
 			conn: conn,
-			data: buf,
+			msg:  msg,
 		}
 
 		// 从路由中找到注册绑定的连接对应的router调用
@@ -130,9 +155,28 @@ func (conn *Connection) GetRemoteAddr() net.Addr {
 
 /**
  * @brief：发送数据，将数据发送至远程客户端
+ * @param [in] msgID:消息ID
  * @param [in] data:发送的数据
  * @return 失败返回错误信息，成功返回nil
  */
-func (conn *Connection) Send(data []byte) error {
+func (conn *Connection) SendMsg(msgID uint32, data []byte) error {
+	if conn.isClosed {
+		return errors.New("Connection closed when send message")
+	}
+
+	// 对发送的数据进行封包
+	dataPackage := NewDataPack()
+	binaryMsg, err := dataPackage.Pack(NewMessage(msgID, data))
+	if err != nil {
+		fmt.Println("Pack error MsgID = ", msgID)
+		return errors.New("Pack error message")
+	}
+
+	// 将数据包发送给客户端
+	if _, err := conn.Conn.Write(binaryMsg); err != nil {
+		fmt.Println("Write message id = ", msgID, " error: ", err)
+		return errors.New("conn Write error")
+	}
+
 	return nil
 }

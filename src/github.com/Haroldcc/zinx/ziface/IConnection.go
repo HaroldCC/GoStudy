@@ -40,10 +40,11 @@ type IConnection interface {
 
 	/**
 	 * @brief：发送数据，将数据发送至远程客户端
+	 * @param [in] msgID:消息ID
 	 * @param [in] data:发送的数据
 	 * @return 失败返回错误信息，成功返回nil
 	 */
-	Send(data []byte) error
+	SendMsg(msgID uint32, data []byte) error
 }
 
 // 业务处理方法

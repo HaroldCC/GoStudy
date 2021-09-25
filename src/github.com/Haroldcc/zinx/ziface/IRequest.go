@@ -20,4 +20,10 @@ type IRequest interface {
 	 * @return 请求的数
 	 */
 	GetData() []byte
+
+	/**
+	 * @brief：获得当前消息ID
+	 * @return 消息ID
+	 */
+	GetMsgID() uint32
 }

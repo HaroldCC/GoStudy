@@ -6,10 +6,26 @@
 
 package znet
 
+import "GoStudy/src/github.com/Haroldcc/zinx/ziface"
+
 type Message struct {
 	id      uint32 // 消息ID
 	size    uint32 // 消息长度
 	content []byte // 消息内容
+}
+
+/**
+ * @brief：创建一个Message
+ * @param [in] msgID 消息ID
+ * @param [out] content 消息内容
+ * @return Message
+ */
+func NewMessage(msgID uint32, content []byte) ziface.IMessage {
+	return &Message{
+		id:      msgID,
+		size:    uint32(len(content)),
+		content: content,
+	}
 }
 
 /**

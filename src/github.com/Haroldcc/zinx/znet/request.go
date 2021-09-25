@@ -10,7 +10,7 @@ import "GoStudy/src/github.com/Haroldcc/zinx/ziface"
 
 type Request struct {
 	conn ziface.IConnection // 与客户端建立好的连接
-	data []byte             // 客户端请求的数据
+	msg  ziface.IMessage    // 客户端请求的数据
 }
 
 /**
@@ -26,5 +26,13 @@ func (request *Request) GetConnection() ziface.IConnection {
  * @return 请求的数
  */
 func (request *Request) GetData() []byte {
-	return request.data
+	return request.msg.GetMsgContent()
+}
+
+/**
+ * @brief：获取消息ID
+ * @return 消息ID
+ */
+func (request *Request) GetMsgID() uint32 {
+	return request.GetMsgID()
 }
