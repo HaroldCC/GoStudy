@@ -17,36 +17,22 @@ type PingRouter struct {
 	znet.BaseRouter
 }
 
-// test PreHandle
-func (router *PingRouter) PrevHandle(request ziface.IRequest) {
-	_, err := request.GetConnection().GetTcpConnection().Write([]byte("before ping...\n"))
-	if err != nil {
-		fmt.Println("call PreHandle error: ", err)
-	}
-
-}
-
 // test Handle
 func (router *PingRouter) Handle(request ziface.IRequest) {
-	_, err := request.GetConnection().GetTcpConnection().Write([]byte("ping ping...\n"))
+	// 读取客户端数据并打印
+	fmt.Println("recv from client msgID=", request.GetMsgID(),
+		", content:", string(request.GetData()))
+
+	// 向客户端发送消息
+	err := request.GetConnection().SendMsg(1, []byte("a message form server"))
 	if err != nil {
-		fmt.Println("call Handle error: ", err)
+		fmt.Println("send message error: ", err)
 	}
-
-}
-
-// test PostHandle
-func (router *PingRouter) PostHandle(request ziface.IRequest) {
-	_, err := request.GetConnection().GetTcpConnection().Write([]byte("after ping...\n"))
-	if err != nil {
-		fmt.Println("call PostHandle error: ", err)
-	}
-
 }
 
 func main() {
 	// 1.创建一个server
-	server := znet.NewServer("[zinx服务端测试v0.4]")
+	server := znet.NewServer("[zinx服务端测试v0.5]")
 
 	// 2.给框架添加一个自定义的router
 	server.AddRouter(&PingRouter{})
