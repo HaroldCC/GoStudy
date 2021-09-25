@@ -19,9 +19,8 @@ type IServer interface {
 
 	/**
 	 * @brief：路由功能:给当前的服务注册一个路由方法，共客户端连接处理
+	 * @param [in] msgID 消息ID
 	 * @param [in] router 路由
-	 * @param [out]
-	 * @return
 	 */
-	AddRouter(router IRouter)
+	AddRouter(msgID uint32, router IRouter)
 }

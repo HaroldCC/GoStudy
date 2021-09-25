@@ -16,27 +16,27 @@ import (
 
 // IConnection模块实现
 type Connection struct {
-	Conn     *net.TCPConn   // 当前连接的TCP socket
-	ConnID   uint32         // 连接的ID
-	isClosed bool           // 连接状态
-	ExitChan chan bool      // 告知当前连接状态的channel(退出/停止)
-	Router   ziface.IRouter // 当前连接处理的方法路由
+	Conn       *net.TCPConn      // 当前连接的TCP socket
+	ConnID     uint32            // 连接的ID
+	isClosed   bool              // 连接状态
+	ExitChan   chan bool         // 告知当前连接状态的channel(退出/停止)
+	MsgHandler ziface.IMsgHandle // 消息管理模块，绑定MsgID和对应的业务处理API
 }
 
 /**
  * @brief：创建一个Connection
  * @param [in] conn: 连接的socket
  * @param [in] connID:连接ID
- * @param [in] router:处理业务路由
+ * @param [in] msgHandler:消息处理API
  * @return 创建的connection
  */
-func NewConnection(conn *net.TCPConn, connID uint32, router ziface.IRouter) ziface.IConnection {
+func NewConnection(conn *net.TCPConn, connID uint32, msgHandler ziface.IMsgHandle) ziface.IConnection {
 	connection := Connection{
-		Conn:     conn,
-		ConnID:   connID,
-		isClosed: false,
-		ExitChan: make(chan bool, 1),
-		Router:   router,
+		Conn:       conn,
+		ConnID:     connID,
+		isClosed:   false,
+		ExitChan:   make(chan bool, 1),
+		MsgHandler: msgHandler,
 	}
 
 	return &connection
@@ -90,12 +90,8 @@ func (conn *Connection) StartReader() {
 			msg:  msg,
 		}
 
-		// 从路由中找到注册绑定的连接对应的router调用
-		go func(request ziface.IRequest) {
-			conn.Router.PrevHandle(request)
-			conn.Router.Handle(request)
-			conn.Router.PostHandle(request)
-		}(&req)
+		// 根据绑定好的msgID,找到对应的API处理业务
+		go conn.MsgHandler.DoMsgHandler(&req)
 	}
 
 }
