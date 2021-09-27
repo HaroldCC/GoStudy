@@ -21,21 +21,25 @@ type GlobalConf struct {
 	Name      string         // 当前服务器名称
 
 	/*zinx*/
-	Version        string // zinx版本号
-	MaxConn        int    // 服务器主机允许的最大连接数
-	MaxPackageSize uint32 // zinx框架数据包的最大值
+	Version           string // zinx版本号
+	MaxConn           int    // 服务器主机允许的最大连接数
+	MaxPackageSize    uint32 // zinx框架数据包的最大值
+	WorkerPoolSize    uint32 // 当前工作协程的数量
+	MaxWorkerTaskSize uint32 // zinx框架限定的每个工作协程任务队列的最大任务数量
 }
 
 // 初始化GlobalConf
 func init() {
 	// 默认初始化
 	G_config = &GlobalConf{
-		Host:           "0.0.0.0",
-		TcpPort:        8888,
-		Name:           "zinxServer app",
-		Version:        "v0.7",
-		MaxConn:        1000,
-		MaxPackageSize: 4096,
+		Host:              "0.0.0.0",
+		TcpPort:           8888,
+		Name:              "zinxServer app",
+		Version:           "v0.8",
+		MaxConn:           1000,
+		MaxPackageSize:    4096,
+		WorkerPoolSize:    10,
+		MaxWorkerTaskSize: 1024,
 	}
 
 	// 尝试加载使用方的配置参数

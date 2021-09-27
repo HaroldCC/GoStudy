@@ -7,6 +7,7 @@
 package znet
 
 import (
+	"GoStudy/src/github.com/Haroldcc/zinx/utils"
 	"GoStudy/src/github.com/Haroldcc/zinx/ziface"
 	"errors"
 	"fmt"
@@ -92,8 +93,13 @@ func (conn *Connection) StartReader() {
 			msg:  msg,
 		}
 
-		// 根据绑定好的msgID,找到对应的API处理业务
-		go conn.MsgHandler.DoMsgHandler(&req)
+		if utils.G_config.WorkerPoolSize > 0 {
+			// 已经开启了工作池机制，将消息发送给工作池进行处理
+			conn.MsgHandler.SendMsgToTaskQueue(&req)
+		} else {
+			// 根据绑定好的msgID,找到对应的API处理业务
+			go conn.MsgHandler.DoMsgHandler(&req)
+		}
 	}
 
 }

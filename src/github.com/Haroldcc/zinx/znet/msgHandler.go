@@ -7,13 +7,16 @@
 package znet
 
 import (
+	"GoStudy/src/github.com/Haroldcc/zinx/utils"
 	"GoStudy/src/github.com/Haroldcc/zinx/ziface"
 	"fmt"
 )
 
 // 消息管理模块
 type MsgHandle struct {
-	APIs map[uint32]ziface.IRouter // 消息ID与其对应的处理接口map
+	APIs           map[uint32]ziface.IRouter // 消息ID与其对应的处理接口map
+	TaskQueue      []chan ziface.IRequest    // worker(工作协程)任务队列
+	WorkerPoolSize uint32                    // worker(工作协程)个数
 }
 
 /**
@@ -22,7 +25,9 @@ type MsgHandle struct {
  */
 func NewMsgHandle() ziface.IMsgHandle {
 	return &MsgHandle{
-		APIs: make(map[uint32]ziface.IRouter),
+		APIs:           make(map[uint32]ziface.IRouter),
+		TaskQueue:      make([]chan ziface.IRequest, utils.G_config.WorkerPoolSize),
+		WorkerPoolSize: utils.G_config.WorkerPoolSize,
 	}
 }
 
@@ -59,4 +64,43 @@ func (msgHandle *MsgHandle) AddRouter(msgID uint32, router ziface.IRouter) {
 	msgHandle.APIs[msgID] = router
 
 	fmt.Println("add api msgID= ", msgID, "succeed.")
+}
+
+/**
+ * @brief：启动worker工作池
+ */
+func (msgHandle *MsgHandle) StartWorkPool() {
+	// 根据WorkerPoolSize分别开启worker，每个worker使用一个goroutine承载
+	for i := 0; i < int(msgHandle.WorkerPoolSize); i++ {
+		msgHandle.TaskQueue[i] = make(chan ziface.IRequest, utils.G_config.MaxWorkerTaskSize)
+
+		go msgHandle.StartWorker(i, msgHandle.TaskQueue[i])
+	}
+}
+
+/**
+ * @brief：启动一个worker工作流程
+ * @param [in] workerID 工作协程ID
+ * @param [in] taskQueue 任务队列
+ */
+func (msgHandle *MsgHandle) StartWorker(workerID int, taskQueue chan ziface.IRequest) {
+	// 循环阻塞等待对应的消息队列的消息
+	for {
+		msgHandle.DoMsgHandler(<-taskQueue)
+	}
+}
+
+/**
+ * @brief：将消息分配给任务队列，由worker进行处理
+ * @param [in] request 消息请求
+ */
+func (msgHandle *MsgHandle) SendMsgToTaskQueue(request ziface.IRequest) {
+	// 将消息平均分配给不同的worker
+	workID := request.GetConnection().GetConnectionId() % msgHandle.WorkerPoolSize
+	fmt.Println("[Add ConnId=", request.GetConnection().GetConnectionId(),
+		" request MsgID=", request.GetMsgID(),
+		" to workID= ", workID, "]")
+
+	// 将消息发送给对应的worker所在的TaskQueue
+	msgHandle.TaskQueue[workID] <- request
 }

@@ -2,5 +2,6 @@
     "Name": "zinx DemoServerApp",
     "Host": "127.0.0.1",
     "TcpPort": 8888,
-    "MaxConn": 3
+    "MaxConn": 3,
+    "MaxWorkerTaskSize": 10
 }

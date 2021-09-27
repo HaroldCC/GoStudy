@@ -20,4 +20,15 @@ type IMsgHandle interface {
 	 * @param [in] router 路由
 	 */
 	AddRouter(msgID uint32, router IRouter)
+
+	/**
+	 * @brief：启动worker工作池
+	 */
+	StartWorkPool()
+
+	/**
+	 * @brief：将消息分配给任务队列，由worker进行处理
+	 * @param [in] request 消息请求
+	 */
+	SendMsgToTaskQueue(request IRequest)
 }
