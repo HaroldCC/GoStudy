@@ -15,12 +15,14 @@ import (
 
 // IServer的接口实现：定义一个Server的服务器模块
 type Server struct {
-	Name       string              // 服务器名称
-	IPVersion  string              // 服务器版本
-	IP         string              // 服务器IP
-	Port       int                 // 服务器端口
-	MsgHandler ziface.IMsgHandle   // 消息管理模块，绑定MsgID和对应的业务处理API
-	ConnMgr    ziface.IConnManager // 连接管理模块
+	Name        string                        // 服务器名称
+	IPVersion   string                        // 服务器版本
+	IP          string                        // 服务器IP
+	Port        int                           // 服务器端口
+	MsgHandler  ziface.IMsgHandle             // 消息管理模块，绑定MsgID和对应的业务处理API
+	ConnMgr     ziface.IConnManager           // 连接管理模块
+	OnConnStart func(conn ziface.IConnection) // server创建连接之后调用的Hook方法
+	OnConnStop  func(conn ziface.IConnection) // server关闭连接之前调用的Hook方法
 }
 
 // 启动服务器
@@ -120,4 +122,42 @@ func NewServer(name string) ziface.IServer {
 	}
 
 	return &server
+}
+
+/**
+ * @brief：注册连接创建之后的钩子方法
+ * @param [in] hookFunc Hook方法
+ */
+func (server *Server) SetOnConnStart(hookFunc func(conn ziface.IConnection)) {
+	server.OnConnStart = hookFunc
+}
+
+/**
+ * @brief：注册连接销毁之前的钩子方法
+ * @param [in] hookFunc Hook方法
+ */
+func (server *Server) SetOnConnStop(hookFunc func(conn ziface.IConnection)) {
+	server.OnConnStop = hookFunc
+}
+
+/**
+ * @brief：调用连接创建之后的钩子方法
+ * @param [in] conn 连接
+ */
+func (server *Server) CallOnConnStart(conn ziface.IConnection) {
+	if server.OnConnStart != nil {
+		fmt.Println("[****Call OnConnStart()...")
+		server.OnConnStart(conn)
+	}
+}
+
+/**
+ * @brief：调用连接销毁之前的钩子方法
+ * @param [in] conn 连接
+ */
+func (server *Server) CallOnConnStop(conn ziface.IConnection) {
+	if server.OnConnStop != nil {
+		fmt.Println("[****Call OnConnStop()...]")
+		server.OnConnStop(conn)
+	}
 }

@@ -144,6 +144,9 @@ func (conn *Connection) Start() {
 
 	// 启动写业务
 	go conn.StartWriter()
+
+	// 处理创建连接之后的业务，执行对应的hook方法
+	conn.TcpServer.CallOnConnStart(conn)
 }
 
 /**
@@ -156,6 +159,11 @@ func (conn *Connection) Stop() {
 	if conn.isClosed {
 		return
 	}
+
+	conn.isClosed = true
+
+	// 处理连接关闭之前的业务，执行对应的hook方法
+	conn.TcpServer.CallOnConnStop(conn)
 
 	// 关闭连接
 	conn.Conn.Close()
