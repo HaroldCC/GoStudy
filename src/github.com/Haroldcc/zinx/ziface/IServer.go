@@ -23,4 +23,10 @@ type IServer interface {
 	 * @param [in] router 路由
 	 */
 	AddRouter(msgID uint32, router IRouter)
+
+	/**
+	 * @brief：获取连接管理器
+	 * @return 连接管理器
+	 */
+	GetConnMgr() IConnManager
 }

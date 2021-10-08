@@ -15,11 +15,12 @@ import (
 
 // IServer的接口实现：定义一个Server的服务器模块
 type Server struct {
-	Name       string            // 服务器名称
-	IPVersion  string            // 服务器版本
-	IP         string            // 服务器IP
-	Port       int               // 服务器端口
-	MsgHandler ziface.IMsgHandle // 消息管理模块，绑定MsgID和对应的业务处理API
+	Name       string              // 服务器名称
+	IPVersion  string              // 服务器版本
+	IP         string              // 服务器IP
+	Port       int                 // 服务器端口
+	MsgHandler ziface.IMsgHandle   // 消息管理模块，绑定MsgID和对应的业务处理API
+	ConnMgr    ziface.IConnManager // 连接管理模块
 }
 
 // 启动服务器
@@ -59,8 +60,15 @@ func (server *Server) Start() {
 				continue
 			}
 
+			// 判断当前连接个数，超过配置中最大连接，关闭新的连接
+			if server.ConnMgr.Size() >= utils.G_config.MaxConn {
+				fmt.Println("[Too many connections, MaxConn=", utils.G_config.MaxConn, "]")
+				tcpConn.Close()
+				continue
+			}
+
 			// 将当前连接业务处理与连接绑定
-			handleConn := NewConnection(tcpConn, connId, server.MsgHandler)
+			handleConn := NewConnection(server, tcpConn, connId, server.MsgHandler)
 			connId++
 
 			// 启动业务处理
@@ -71,7 +79,8 @@ func (server *Server) Start() {
 
 // 停止服务器
 func (server *Server) Stop() {
-
+	fmt.Println("[Stop!zinx server name: ", server.Name)
+	server.ConnMgr.Clear()
 }
 
 // 运行服务器
@@ -91,6 +100,14 @@ func (server *Server) AddRouter(msgID uint32, router ziface.IRouter) {
 	server.MsgHandler.AddRouter(msgID, router)
 }
 
+/**
+ * @brief：获取连接管理器
+ * @return 连接管理器
+ */
+func (server *Server) GetConnMgr() ziface.IConnManager {
+	return server.ConnMgr
+}
+
 // 初始化Server(创建一个Server)
 func NewServer(name string) ziface.IServer {
 	server := Server{
@@ -99,6 +116,7 @@ func NewServer(name string) ziface.IServer {
 		IP:         utils.G_config.Host,
 		Port:       utils.G_config.TcpPort,
 		MsgHandler: NewMsgHandle(),
+		ConnMgr:    NewConnMgr(),
 	}
 
 	return &server
