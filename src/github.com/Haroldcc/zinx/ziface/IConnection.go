@@ -45,6 +45,22 @@ type IConnection interface {
 	 * @return 失败返回错误信息，成功返回nil
 	 */
 	SendMsg(msgID uint32, data []byte) error
+
+	/**
+	 * @brief：设置连接属性
+	 */
+	SetProperty(key string, value interface{})
+
+	/**
+	 * @brief：获取连接属性
+	 * @return 成功返回值，错误返回error
+	 */
+	GetProperty(key string) (interface{}, error)
+
+	/**
+	 * @brief：移除连接属性
+	 */
+	RemoveProperty(key string)
 }
 
 // 业务处理方法

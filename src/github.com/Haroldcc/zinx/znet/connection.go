@@ -13,17 +13,20 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"sync"
 )
 
 // IConnection模块实现
 type Connection struct {
-	TcpServer  ziface.IServer    // 当前连接隶属于的server
-	Conn       *net.TCPConn      // 当前连接的TCP socket
-	ConnID     uint32            // 连接的ID
-	isClosed   bool              // 连接状态
-	ExitChan   chan bool         // 告知当前连接状态的channel(退出/停止，由Reader告知Writer)
-	MsgHandler ziface.IMsgHandle // 消息管理模块，绑定MsgID和对应的业务处理API
-	msgChan    chan []byte       // 无缓冲通道，用于读写协程之间的通信
+	TcpServer    ziface.IServer         // 当前连接隶属于的server
+	Conn         *net.TCPConn           // 当前连接的TCP socket
+	ConnID       uint32                 // 连接的ID
+	isClosed     bool                   // 连接状态
+	ExitChan     chan bool              // 告知当前连接状态的channel(退出/停止，由Reader告知Writer)
+	MsgHandler   ziface.IMsgHandle      // 消息管理模块，绑定MsgID和对应的业务处理API
+	msgChan      chan []byte            // 无缓冲通道，用于读写协程之间的通信
+	property     map[string]interface{} // 连接的属性集合
+	propertyLock sync.RWMutex           // 属性结合保护锁
 }
 
 /**
@@ -43,6 +46,7 @@ func NewConnection(server ziface.IServer, conn *net.TCPConn, connID uint32, msgH
 		ExitChan:   make(chan bool, 1),
 		MsgHandler: msgHandler,
 		msgChan:    make(chan []byte),
+		property:   make(map[string]interface{}),
 	}
 
 	// 将connection加入到ConnManager中
@@ -227,4 +231,37 @@ func (conn *Connection) SendMsg(msgID uint32, data []byte) error {
 	conn.msgChan <- binaryMsg
 
 	return nil
+}
+
+/**
+ * @brief：设置连接属性
+ */
+func (conn *Connection) SetProperty(key string, value interface{}) {
+	conn.propertyLock.Lock()
+	conn.property[key] = value
+	conn.propertyLock.Unlock()
+}
+
+/**
+ * @brief：获取连接属性
+ * @return 成功返回值，错误返回error
+ */
+func (conn *Connection) GetProperty(key string) (interface{}, error) {
+	conn.propertyLock.RLock()
+	defer conn.propertyLock.RUnlock()
+
+	if value, ok := conn.property[key]; ok {
+		return value, nil
+	} else {
+		return nil, errors.New("no property found")
+	}
+}
+
+/**
+ * @brief：移除连接属性
+ */
+func (conn *Connection) RemoveProperty(key string) {
+	conn.propertyLock.Lock()
+	delete(conn.property, key)
+	conn.propertyLock.Unlock()
 }
