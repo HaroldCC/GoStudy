@@ -50,7 +50,7 @@ func init() {
  * @brief：从文件中加载配置信息
  */
 func (conf *GlobalConf) LoadConfig() {
-	configData, err := ioutil.ReadFile("../conf/zinx.json")
+	configData, err := ioutil.ReadFile("conf/zinx.json")
 	if err != nil {
 		panic(err)
 	}

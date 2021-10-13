@@ -40,6 +40,7 @@ func (msgHandle *MsgHandle) DoMsgHandler(request ziface.IRequest) {
 	handler, ok := msgHandle.APIs[request.GetMsgID()]
 	if !ok {
 		fmt.Println("msgID=", request.GetMsgID(), "binging api is not found! needed to register!")
+		return
 	}
 
 	// 2.根据msgID调度对应的Router业务
