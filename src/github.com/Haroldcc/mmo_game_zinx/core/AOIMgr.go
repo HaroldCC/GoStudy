@@ -8,6 +8,16 @@ package core
 
 import "fmt"
 
+// 边界值
+const (
+	AOI_MIN_X   int = 85
+	AOI_MAX_X   int = 410
+	AOI_MIN_Y   int = 75
+	AOI_MAX_Y   int = 400
+	AOI_COUNT_X int = 10
+	AOI_COUNT_Y int = 20
+)
+
 // AOI(Area Of Interest)区域管理器
 type AOIManager struct {
 	UpEdge     int           // 当前区域上边边界值

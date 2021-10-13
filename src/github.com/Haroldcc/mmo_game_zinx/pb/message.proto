@@ -28,3 +28,9 @@ message BroadCast
 		int32 ActionData = 5; // 玩家的具体动作
     }
 }
+
+// 世界聊天
+message Talk
+{
+    string Content = 1;
+}
