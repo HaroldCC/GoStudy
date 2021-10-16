@@ -49,6 +49,7 @@ func main() {
 
 	// 注册一些路由业务
 	server.AddRouter(2, &apis.WorldChatApi{})
+	server.AddRouter(3, &apis.PlayerMoveApi{})
 
 	// 启动服务器
 	server.Run()

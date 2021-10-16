@@ -126,15 +126,25 @@ func (player *Player) Talk(content string) {
 }
 
 /**
- * @brief：同步附近玩家
+ * @brief：获取当前玩家周围玩家
+ * @return 周围玩家集合
  */
-func (player *Player) SyncNearbyPlayers() {
-	// 1 获取当前玩家周围的玩家
+func (player *Player) GetNearbyPlayers() []*Player {
 	playerIds := WordManagerObj.AoiMgr.GetPlayerIdsByPos(player.X, player.Z)
 	players := make([]*Player, 0, len(playerIds))
 	for _, playerId := range playerIds {
 		players = append(players, WordManagerObj.GetPlayerById(int32(playerId)))
 	}
+
+	return players
+}
+
+/**
+ * @brief：同步附近玩家
+ */
+func (player *Player) SyncNearbyPlayers() {
+	// 1 获取当前玩家周围的玩家
+	players := player.GetNearbyPlayers()
 
 	// 2 将当前玩家的位置信息发送给周围玩家（让其他玩家看到自己）
 	// 2.1 组建MsgID:200 proto数据
@@ -170,4 +180,34 @@ func (player *Player) SyncNearbyPlayers() {
 
 	// 3.1.3 将周围玩家广播给当前玩家
 	player.SendMsg(202, syncPlayer_proto_msg)
+}
+
+/**
+ * @brief：更新并广播玩家坐标
+ * @param [in] x 横坐标
+ * @param [in] y 高度
+ * @param [in] z 纵坐标
+ * @param [in] v 旋转角度
+ * @return
+ */
+func (player *Player) BroadCastPosition(x, y, z, v float32) {
+	// 更新玩家坐标
+	player.X = x
+	player.Y = y
+	player.Z = z
+	player.V = v
+
+	// 组建proto消息 MsgID:200 MessageType:4
+	proto_msg := &pb.BroadCast{
+		PlayerID:    player.PlayerID,
+		MessageType: 4,
+		Data:        &pb.BroadCast_Pos{Pos: &pb.Position{X: x, Y: y, Z: z, V: v}},
+	}
+
+	// 获取周围玩家
+	players := player.GetNearbyPlayers()
+	for _, nearbyPlayer := range players {
+		// 将玩家当前位置信息广播给周围玩家
+		nearbyPlayer.SendMsg(200, proto_msg)
+	}
 }

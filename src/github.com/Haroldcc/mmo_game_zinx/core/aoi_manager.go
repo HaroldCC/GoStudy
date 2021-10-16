@@ -191,7 +191,7 @@ func (aoiMgr *AOIManager) GetPlayerIdsByPos(x, y float32) (playerIDs []int) {
 	// 得到将周边九宫格中的玩家ID
 	for _, grid := range grids {
 		playerIDs = append(playerIDs, grid.GetPlayerIDs()...)
-		fmt.Printf("==>gird id:%d,playerIDs:%v==\n", grid.GID, grid.GetPlayerIDs())
+		//fmt.Printf("==>gird id:%d,playerIDs:%v==\n", grid.GID, grid.GetPlayerIDs())
 	}
 
 	return playerIDs
