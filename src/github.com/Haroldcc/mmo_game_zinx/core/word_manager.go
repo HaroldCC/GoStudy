@@ -21,7 +21,8 @@ var WordManagerObj *WordManager
 // 初始化
 func init() {
 	WordManagerObj = &WordManager{
-		AoiMgr: NewAOIManager(AOI_MIN_X, AOI_MAX_X, AOI_MIN_Y, AOI_MAX_Y, AOI_COUNT_X, AOI_COUNT_Y),
+		AoiMgr:  NewAOIManager(AOI_MIN_X, AOI_MAX_X, AOI_MIN_Y, AOI_MAX_Y, AOI_COUNT_X, AOI_COUNT_Y),
+		Players: make(map[int32]*Player),
 	}
 }
 

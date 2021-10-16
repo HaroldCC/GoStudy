@@ -94,12 +94,33 @@ func (player *Player) SyncPlayerId() {
 func (player *Player) BroadCastBornPosition() {
 	// 给客户端发送【MsgID:200】消息
 	proto_msg := &pb.BroadCast{
-		PlayerID: player.PlayerID,
-		Tp:       2,
+		PlayerID:    player.PlayerID,
+		MessageType: 2,
 		Data: &pb.BroadCast_Pos{
 			Pos: &pb.Position{X: player.X, Y: player.Y, Z: player.Z, V: player.V},
 		},
 	}
 
 	player.SendMsg(200, proto_msg)
+}
+
+/**
+ * @brief：玩家广播世界聊天消息
+ * @param [in] content 消息内容
+ */
+func (player *Player) Talk(content string) {
+	// 1 组建MsgID:200的proto数据
+	proto_msg := &pb.BroadCast{
+		PlayerID:    player.PlayerID,
+		MessageType: 1,
+		Data:        &pb.BroadCast_Content{Content: content},
+	}
+
+	// 2 得到当前世界所有在线玩家
+	players := WordManagerObj.GetAllPlayers()
+
+	// 3 向所有玩家（包括自己）发送MsgID:200的消息
+	for _, p := range players {
+		p.SendMsg(200, proto_msg)
+	}
 }

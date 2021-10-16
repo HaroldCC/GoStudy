@@ -7,6 +7,7 @@
 package main
 
 import (
+	"GoStudy/src/github.com/Haroldcc/mmo_game_zinx/apis"
 	"GoStudy/src/github.com/Haroldcc/mmo_game_zinx/core"
 	"GoStudy/src/github.com/Haroldcc/zinx/ziface"
 	"GoStudy/src/github.com/Haroldcc/zinx/znet"
@@ -27,6 +28,12 @@ func OnConnectionAdd(conn ziface.IConnection) {
 	// 给客户端发送【MsgID:200】消息:同步player初始位置
 	player.BroadCastBornPosition()
 
+	// 将当前新上线的玩家添加到WordManager中
+	core.WordManagerObj.AddPlayer(player)
+
+	// 给当前连接绑定一个属性，记录当前连接的玩家ID
+	conn.SetProperty("playerId", player.PlayerID)
+
 	fmt.Println("===>Player id=", player.PlayerID, "is online<===")
 }
 
@@ -38,6 +45,7 @@ func main() {
 	server.SetOnConnStart(OnConnectionAdd)
 
 	// 注册一些路由业务
+	server.AddRouter(2, &apis.WorldChatApi{})
 
 	// 启动服务器
 	server.Run()
