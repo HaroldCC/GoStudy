@@ -34,6 +34,9 @@ func OnConnectionAdd(conn ziface.IConnection) {
 	// 给当前连接绑定一个属性，记录当前连接的玩家ID
 	conn.SetProperty("playerId", player.PlayerID)
 
+	// 同步周边玩家，告知当前玩家（自己）已上线，广播当前玩家位置信息
+	player.SyncNearbyPlayers()
+
 	fmt.Println("===>Player id=", player.PlayerID, "is online<===")
 }
 

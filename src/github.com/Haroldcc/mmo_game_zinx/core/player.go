@@ -124,3 +124,50 @@ func (player *Player) Talk(content string) {
 		p.SendMsg(200, proto_msg)
 	}
 }
+
+/**
+ * @brief：同步附近玩家
+ */
+func (player *Player) SyncNearbyPlayers() {
+	// 1 获取当前玩家周围的玩家
+	playerIds := WordManagerObj.AoiMgr.GetPlayerIdsByPos(player.X, player.Z)
+	players := make([]*Player, 0, len(playerIds))
+	for _, playerId := range playerIds {
+		players = append(players, WordManagerObj.GetPlayerById(int32(playerId)))
+	}
+
+	// 2 将当前玩家的位置信息发送给周围玩家（让其他玩家看到自己）
+	// 2.1 组建MsgID:200 proto数据
+	proto_msg := &pb.BroadCast{
+		PlayerID:    player.PlayerID,
+		MessageType: 2,
+		Data: &pb.BroadCast_Pos{
+			Pos: &pb.Position{X: player.X, Y: player.Y, Z: player.Z, V: player.V},
+		},
+	}
+	// 2.2 将当前玩家位置广播给周围玩家
+	for _, nearbyPlayer := range players {
+		nearbyPlayer.SendMsg(200, proto_msg)
+	}
+
+	// 3 将周围玩家的信息发给当前玩家（让自己看到其他玩家）
+	// 3.1 组件MsgID:202 proto数据
+	// 3.1.1 制作pb.Player切片,存储周围玩家
+	players_proto_msg := make([]*pb.Player, 0, len(players))
+	for _, nearbyPlayer := range players {
+		p := &pb.Player{
+			PlayerID:  nearbyPlayer.PlayerID,
+			PlayerPos: &pb.Position{X: nearbyPlayer.X, Y: nearbyPlayer.Y, Z: nearbyPlayer.Z, V: nearbyPlayer.V},
+		}
+
+		players_proto_msg = append(players_proto_msg, p)
+	}
+
+	// 3.1.2 将pb.Player切片封装进protobuf数据
+	syncPlayer_proto_msg := &pb.SyncPlayers{
+		Player: players_proto_msg[:],
+	}
+
+	// 3.1.3 将周围玩家广播给当前玩家
+	player.SendMsg(202, syncPlayer_proto_msg)
+}
