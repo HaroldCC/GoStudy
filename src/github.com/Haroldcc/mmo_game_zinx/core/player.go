@@ -211,3 +211,23 @@ func (player *Player) BroadCastPosition(x, y, z, v float32) {
 		nearbyPlayer.SendMsg(200, proto_msg)
 	}
 }
+
+/**
+ * @brief：玩家下线
+ */
+func (player *Player) Offline() {
+	// 获得附近玩家
+	players := player.GetNearbyPlayers()
+
+	// 给周围玩家广播下线信息MsgID:201
+	proto_msg := &pb.SyncPlayerID{
+		PlayerID: player.PlayerID,
+	}
+
+	for _, nearbyPlayer := range players {
+		nearbyPlayer.SendMsg(201, proto_msg)
+	}
+
+	// 移除玩家
+	WordManagerObj.RemovePlayerById(player.PlayerID)
+}

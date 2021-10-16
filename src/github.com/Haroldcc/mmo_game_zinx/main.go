@@ -40,12 +40,32 @@ func OnConnectionAdd(conn ziface.IConnection) {
 	fmt.Println("===>Player id=", player.PlayerID, "is online<===")
 }
 
+/**
+ * @brief：客户端连接断之后的Hook方法
+ * @param [in] conn 连接
+ */
+func OnConnectionLost(conn ziface.IConnection) {
+	playerId, err := conn.GetProperty("playerId")
+	if err != nil {
+		fmt.Println("Connection GetProperty playerId error", err)
+		return
+	}
+
+	player := core.WordManagerObj.GetPlayerById(playerId.(int32))
+
+	// 触发玩家下线业务
+	player.Offline()
+
+	fmt.Println("==>player id=", playerId, " offline.")
+}
+
 func main() {
 	// 创建server句柄
 	server := znet.NewServer("MMO Game Server")
 
 	// 注册连接建立后和连接销毁前的Hook方法
 	server.SetOnConnStart(OnConnectionAdd)
+	server.SetOnConnStop(OnConnectionLost)
 
 	// 注册一些路由业务
 	server.AddRouter(2, &apis.WorldChatApi{})
